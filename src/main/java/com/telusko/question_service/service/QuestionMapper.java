@@ -14,7 +14,7 @@ public interface QuestionMapper {
 	@Mapping(target = "rightAnswer", ignore = true)
 	QuestionDTO toNoAnswerDTO(Question question);
 
-	QuestionWrapperDTO toAnswerWrapperDTO(Question question);
+	QuestionWrapperDTO toQuestionWrapperDTO(Question question);
 
 	Question toEntity(QuestionDTO dto);
 

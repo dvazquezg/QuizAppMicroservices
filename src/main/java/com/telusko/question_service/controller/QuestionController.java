@@ -3,6 +3,8 @@ package com.telusko.question_service.controller;
 import java.util.List;
 
 import com.telusko.question_service.dto.QuestionDTO;
+import com.telusko.question_service.dto.QuestionWrapperDTO;
+import com.telusko.question_service.dto.ResponseDTO;
 import com.telusko.question_service.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,16 @@ public class QuestionController {
 	public ResponseEntity<List<Integer>> getQuestionsForQuiz(@RequestParam String category,
 			@RequestParam Integer numQ) {
 		return questionService.getQuestionsForQuiz(category, numQ);
+	}
+
+	@PostMapping("getQuestions")
+	public ResponseEntity<List<QuestionWrapperDTO>> getQuestionsFromIds(@RequestBody List<Integer> questionIds) {
+		return questionService.getQuestionsFromIds(questionIds);
+	}
+
+	@PostMapping("getScore")
+	public ResponseEntity<Integer> getScore(@RequestBody List<ResponseDTO> responses) {
+		return questionService.getScore(responses);
 	}
 
 }
