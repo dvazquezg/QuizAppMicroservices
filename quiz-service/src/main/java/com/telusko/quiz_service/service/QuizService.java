@@ -3,7 +3,7 @@ package com.telusko.quiz_service.service;
 import com.telusko.quiz_service.dto.QuestionWrapperDTO;
 import com.telusko.quiz_service.dto.QuizDTO;
 import com.telusko.quiz_service.dto.ResponseDTO;
-import com.telusko.quiz_service.model.Question;
+import com.telusko.quiz_service.feign.QuizInterface;
 import com.telusko.quiz_service.model.Quiz;
 import com.telusko.quiz_service.repository.QuizDAO;
 import org.slf4j.Logger;
@@ -26,23 +26,28 @@ public class QuizService {
 
 	private final QuizMapper quizMapper;
 
+	QuizInterface quizInterface;
+
 	@Autowired
-	public QuizService(QuizDAO quizDAO, QuizMapper quizMapper) {
+	public QuizService(QuizDAO quizDAO, QuizMapper quizMapper, QuizInterface quizInterface) {
 		this.quizDAO = quizDAO;
 		this.quizMapper = quizMapper;
+		this.quizInterface = quizInterface;
 	}
 
 	public ResponseEntity<String> createQuiz(QuizDTO quizDTO) {
 		try {
-			List<Integer> quizQuestions = new ArrayList<>();
+			String category = quizDTO.getCategoryName();
+			int numQ = quizDTO.getNumQuestions();
+			String title = quizDTO.getQuizTitle();
 
-			// TODO: call to question service to get questions
+			// Get questions from question microservice (via Feign + Eureka registry)
+			List<Integer> questionIds = quizInterface.getQuestionsForQuiz(category, numQ).getBody();
 
-			// create quiz
-			List<Question> questionList = new ArrayList<>();
+			// save quiz in DB
 			Quiz newQuiz = new Quiz();
-			newQuiz.setQuizTitle(quizDTO.getQuizTitle());
-			newQuiz.setQuestions(questionList);
+			newQuiz.setQuizTitle(title);
+			newQuiz.setQuestionIds(questionIds);
 			quizDAO.save(newQuiz);
 			return new ResponseEntity<>("Success", HttpStatus.CREATED);
 		}
@@ -56,12 +61,12 @@ public class QuizService {
 	public ResponseEntity<List<QuestionWrapperDTO>> getQuizQuestions(Integer id) {
 		try {
 			Optional<Quiz> quiz = quizDAO.findById(id);
-			List<Question> questions;
+			List<Integer> questions;
 			List<QuestionWrapperDTO> quizQuestions = new ArrayList<>();
 			// TODO: get questions from questions service
 
 			if (quiz.isPresent()) {
-				questions = quiz.get().getQuestions();
+				questions = quiz.get().getQuestionIds();
 			}
 			else {
 				throw new IllegalArgumentException("Quiz id does not exist");
