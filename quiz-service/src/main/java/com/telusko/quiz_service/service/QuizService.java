@@ -61,16 +61,16 @@ public class QuizService {
 	public ResponseEntity<List<QuestionWrapperDTO>> getQuizQuestions(Integer id) {
 		try {
 			Optional<Quiz> quiz = quizDAO.findById(id);
-			List<Integer> questions;
-			List<QuestionWrapperDTO> quizQuestions = new ArrayList<>();
-			// TODO: get questions from questions service
+			List<Integer> questionIds;
 
 			if (quiz.isPresent()) {
-				questions = quiz.get().getQuestionIds();
+				questionIds = quiz.get().getQuestionIds();
 			}
 			else {
 				throw new IllegalArgumentException("Quiz id does not exist");
 			}
+
+			List<QuestionWrapperDTO> quizQuestions = quizInterface.getQuestionsFromIds(questionIds).getBody();
 
 			return new ResponseEntity<>(quizQuestions, HttpStatus.OK);
 		}
@@ -83,8 +83,8 @@ public class QuizService {
 
 	public ResponseEntity<Integer> submitQuiz(Integer id, List<ResponseDTO> responses) {
 		try {
-			Integer score = 0; // TODO: get score from question service
-
+			logger.info("Scoring quiz responses...");
+			Integer score = quizInterface.getScore(responses).getBody();
 			return new ResponseEntity<>(score, HttpStatus.OK);
 		}
 		catch (Exception e) {
